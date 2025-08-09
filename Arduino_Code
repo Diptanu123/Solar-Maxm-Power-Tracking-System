@@ -1,0 +1,54 @@
+#include <Servo.h>
+
+// Create servo object
+Servo servo;
+
+// Pin assignments for LDRs
+int eastLDR = 0;   // Analog pin A0
+int westLDR = 1;   // Analog pin A1
+
+// Variables for readings
+int east = 0;
+int west = 0;
+int error = 0;
+
+// Calibration value (adjust if LDRs have different sensitivities)
+int calibration = 600;
+
+// Initial servo position (facing east)
+int servoPosition = 90;
+
+void setup() {
+  servo.attach(9); // Attach servo to pin 9
+}
+
+void loop() {
+  // Read LDR values
+  east = calibration + analogRead(eastLDR);
+  west = analogRead(westLDR);
+
+  // If both sensors detect low light, reset panel to east position
+  if (east < 350 && west < 350) {
+    while (servoPosition <= 150) {
+      servoPosition++;
+      servo.write(servoPosition);
+      delay(100);
+    }
+  }
+
+  // Calculate difference in light intensity
+  error = east - west;
+
+  // Move towards east if east LDR reads more light
+  if (error > 15 && servoPosition <= 150) {
+    servoPosition++;
+    servo.write(servoPosition);
+  }
+  // Move towards west if west LDR reads more light
+  else if (error < -15 && servoPosition > 20) {
+    servoPosition--;
+    servo.write(servoPosition);
+  }
+
+  delay(100); // Small delay to prevent jitter
+}
